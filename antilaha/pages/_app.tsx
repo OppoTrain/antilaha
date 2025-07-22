@@ -12,6 +12,7 @@ import { useRouter } from "next/router"
 import Script from "next/script"
 import { cacheManager } from "@/lib/cache"
 import Head from "next/head"
+import Adminicon from "@/components/admin"
 
 const notoKufiArabic = Noto_Kufi_Arabic({
   subsets: ["arabic"],
@@ -149,16 +150,16 @@ export default function App({ Component, pageProps }: AppProps) {
       <main className={notoKufiArabic.className}>
         <Head>
 
-              <title>Curl Maker | كيرل ميكر</title>
+              <title> انتِ لها  </title>
         <meta name="title" content="Curl Maker | كيرل ميكر" />
-        <meta
+        {/* <meta
           name="description"
           content="كيرل ميكر - منتجات طبيعية وآمنة للعناية بالشعر في فلسطين - نابلس. Curl Maker - Natural and safe hair care products from Nablus, Palestine."
         />
         <meta
           name="keywords"
           content="Curl Maker, كيرل ميكر, منتجات شعر, العناية بالشعر, نابلس, فلسطين, شعر كيرلي, منتجات طبيعية, Hair Products, Nablus, Palestine, Curly Hair"
-        />
+        /> */}
         </Head>
         <Script
           id="pwa-setup"
@@ -183,6 +184,7 @@ export default function App({ Component, pageProps }: AppProps) {
           <Analytics />
           <SpeedInsights />
           <NextUIProvider>
+            <Adminicon/>
             {/* {loading && <LoadingScreen />} */}
             <Component {...pageProps} />
           </NextUIProvider>

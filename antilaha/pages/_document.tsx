@@ -2,7 +2,7 @@ import { Html, Head, Main, NextScript } from "next/document"
 
 export default function Document() {
   const logoUrl =
-    "https://firebasestorage.googleapis.com/v0/b/curlmaker-ae151.firebasestorage.app/o/LOGO%2Fimage.png?alt=media&token=72933bb0-9073-4327-8ab9-7c997e8c5e68"
+    "https://firebasestorage.googleapis.com/v0/b/curlmaker-ae151.firebasestorage.app/o/1%20(1).png?alt=media&token=521a8455-2ed3-4a73-b0a6-1b735a1886da"
 
   return (
     <Html lang="ar">
@@ -25,7 +25,7 @@ export default function Document() {
         />
 
         {/* Canonical URL */}
-        <link rel="canonical" href="https://www.curlmaker.com" />
+        <link rel="canonical" href="https://antilaha.com" />
 
         {/* Favicon & Icons */}
         <link rel="shortcut icon" href={logoUrl} />
@@ -37,7 +37,7 @@ export default function Document() {
 
         {/* Social Sharing Meta - Open Graph */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://www.curlmaker.com" />
+        <meta property="og:url" content="https://antilaha.com" />
         <meta property="og:title" content="Curl Maker | كيرل ميكر" />
         <meta
           property="og:description"
@@ -47,7 +47,7 @@ export default function Document() {
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:url" content="https://www.curlmaker.com" />
+        <meta name="twitter:url" content="https://antilaha.com" />
         <meta name="twitter:title" content="Curl Maker | كيرل ميكر" />
         <meta
           name="twitter:description"
