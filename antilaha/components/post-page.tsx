@@ -3,12 +3,10 @@
 import { useState, useEffect } from "react"
 import { doc, getDoc, collection, getDocs, query, orderBy, limit, where } from "firebase/firestore"
 import { db } from "@/lib/firebase"
-import Navbar from "@/components//Navigations/main-nav"
+import Navbar from "@/components/Navigations/main-nav"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import SplitText from "../src/TextAnimations/ScrollReveal/ScrollReveal";
-
-
+import SplitText from "@/src/TextAnimations/ScrollReveal/ScrollReveal"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Calendar,
@@ -27,6 +25,7 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 import BlurText from "@/src/TextAnimations/BlurText/BlurText"
+import { motion } from "framer-motion"
 
 interface Post {
   id: string
@@ -62,7 +61,6 @@ export function PostPage({ postId }: PostPageProps) {
 
   useEffect(() => {
     const fetchPostData = async () => {
-      // Early return if no postId
       if (!postId) {
         console.error("No postId provided")
         setError("معرف المقال مفقود")
@@ -70,7 +68,6 @@ export function PostPage({ postId }: PostPageProps) {
         return
       }
 
-      // Check if postId is valid
       if (typeof postId !== "string" || postId.trim() === "") {
         console.error("Invalid postId:", postId)
         setError("معرف المقال غير صحيح")
@@ -80,11 +77,10 @@ export function PostPage({ postId }: PostPageProps) {
 
       try {
         setIsLoading(true)
-        setError(null) // Reset error state
+        setError(null)
 
         console.log("Fetching post with ID:", postId)
 
-        // Fetch the main post
         const postDoc = await getDoc(doc(db, "posts", postId))
         if (!postDoc.exists()) {
           console.log("Post document does not exist")
@@ -95,7 +91,6 @@ export function PostPage({ postId }: PostPageProps) {
         const postData = { id: postDoc.id, ...postDoc.data() } as Post
         console.log("Raw post data:", postData)
 
-        // Validate post data
         if (!postData.title || !postData.author) {
           console.error("Post data incomplete:", postData)
           setError("بيانات المقال غير مكتملة")
@@ -103,10 +98,9 @@ export function PostPage({ postId }: PostPageProps) {
         }
 
         setPost(postData)
-        setLikesCount(postData.likes || 0) // Add this line
+        setLikesCount(postData.likes || 0)
         console.log("Post loaded successfully:", postData.title)
 
-        // Fetch categories
         const categoriesRef = collection(db, "categories")
         const categoriesSnapshot = await getDocs(categoriesRef)
         const fetchedCategories: Category[] = []
@@ -119,7 +113,6 @@ export function PostPage({ postId }: PostPageProps) {
         setCategories(fetchedCategories)
         console.log("Categories loaded:", fetchedCategories)
 
-        // Fetch recommended posts (same categories, excluding current post)
         if (postData.categories && postData.categories.length > 0) {
           try {
             const postsRef = collection(db, "posts")
@@ -135,15 +128,13 @@ export function PostPage({ postId }: PostPageProps) {
             const recommended: Post[] = []
             recommendedSnapshot.forEach((doc) => {
               if (doc.id !== postId) {
-                // Exclude current post
                 recommended.push({ id: doc.id, ...doc.data() } as Post)
               }
             })
-            setRecommendedPosts(recommended.slice(0, 4)) // Take only 4 posts
+            setRecommendedPosts(recommended.slice(0, 4))
             console.log("Recommended posts loaded:", recommended.length)
           } catch (recommendedError) {
             console.error("Error fetching recommended posts:", recommendedError)
-            // Don't fail the whole page if recommended posts fail
           }
         }
       } catch (err) {
@@ -187,20 +178,23 @@ export function PostPage({ postId }: PostPageProps) {
   }
 
   const shareOnFacebook = () => {
-    const url = encodeURIComponent(window.location.href)
-    const title = encodeURIComponent(post?.title || "")
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${title}`, "_blank")
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : ""
+    const url = encodeURIComponent(`${baseUrl}/post/${postId}`)
+    const title = encodeURIComponent(post?.title || "Check out this article!")
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}&t=${title}`, "_blank")
   }
 
   const shareOnTwitter = () => {
-    const url = encodeURIComponent(window.location.href)
-    const title = encodeURIComponent(post?.title || "")
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : ""
+    const url = encodeURIComponent(`${baseUrl}/post/${postId}`)
+    const title = encodeURIComponent(post?.title || "Check out this article!")
     window.open(`https://twitter.com/intent/tweet?url=${url}&text=${title}`, "_blank")
   }
 
   const shareOnWhatsApp = () => {
-    const url = encodeURIComponent(window.location.href)
-    const title = encodeURIComponent(post?.title || "")
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : ""
+    const url = encodeURIComponent(`${baseUrl}/post/${postId}`)
+    const title = encodeURIComponent(post?.title || "Check out this article!")
     window.open(`https://wa.me/?text=${title}%20${url}`, "_blank")
   }
 
@@ -213,16 +207,14 @@ export function PostPage({ postId }: PostPageProps) {
       if (!block) return null
 
       if (block.type === "text" && block.content) {
-        // Parse markdown-style formatting
         let formattedContent = block.content
 
-        // Handle numbering - convert numbered lines to proper list format
         const lines = formattedContent.split("\n")
         const hasNumbering = lines.some((line: string) => /^\d+[-.]/.test(line.trim()))
 
         if (hasNumbering) {
           const numberedLines = lines
-            .map((line: { trim: () => string; match: (arg0: RegExp) => any[]; replace: (arg0: RegExp, arg1: string) => any }) => {
+            .map((line: string) => {
               if (/^\d+[-.]/.test(line.trim())) {
                 return `<div class="mb-3 flex items-start gap-3"><span class="font-bold text-purple-600 min-w-[24px]">${line.match(/^\d+/)?.[0]}.</span><span>${line.replace(/^\d+[-.]?\s*/, "")}</span></div>`
               }
@@ -230,17 +222,13 @@ export function PostPage({ postId }: PostPageProps) {
             })
             .join("")
 
-          formattedContent = `<div class="numbered-content">${numberedLines}</div>`
+          formattedContent = `<div class="numbered-content">${ numberedLines}</div>`
         } else {
-          // Regular formatting for non-numbered content
           formattedContent = formattedContent.replace(/\n/g, "<br>")
         }
 
-        // Bold text
         formattedContent = formattedContent.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-        // Italic text
         formattedContent = formattedContent.replace(/\*(.*?)\*/g, "<em>$1</em>")
-        // Underline text
         formattedContent = formattedContent.replace(/__(.*?)__/g, "<u>$1</u>")
 
         const textStyle = {
@@ -275,6 +263,14 @@ export function PostPage({ postId }: PostPageProps) {
       }
       return null
     })
+  }
+
+  // Animation variants for share buttons
+  const buttonVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut", delay: 0.4 } },
+    hover: { scale: 1.1, transition: { duration: 0.2 } },
+    tap: { scale: 0.9 },
   }
 
   if (isLoading) {
@@ -337,10 +333,9 @@ export function PostPage({ postId }: PostPageProps) {
     )
   }
 
-function handleAnimationComplete(): void {
-  console.log("Title animation finished");
-  // أو setState لتغيير واجهة المستخدم بعد الانتهاء
-}
+  function handleAnimationComplete(): void {
+    console.log("Title animation finished")
+  }
 
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
@@ -363,20 +358,20 @@ function handleAnimationComplete(): void {
                   </Badge>
                 ))}
               </div>
-<SplitText
-  text={post.title}
-  className="text-2xl md:text-5xl font-bold text-center mb-4 leading-tight"
-  delay={100}
-  duration={0.6}
-  ease="power3.out"
-  splitType="words" // بدل chars
-  from={{ opacity: 0, y: 40 }}
-  to={{ opacity: 1, y: 0 }}
-  threshold={0.1}
-  rootMargin="-100px"
-  textAlign="center"
-  onLetterAnimationComplete={handleAnimationComplete}
-/>
+              <SplitText
+                text={post.title}
+                className="text-2xl md:text-5xl font-bold text-center mb-4 leading-tight"
+                delay={100}
+                duration={0.6}
+                ease="power3.out"
+                splitType="words"
+                from={{ opacity: 0, y: 40 }}
+                to={{ opacity: 1, y: 0 }}
+                threshold={0.1}
+                rootMargin="-100px"
+                textAlign="center"
+                onLetterAnimationComplete={handleAnimationComplete}
+              />
 
               {/* Meta Info */}
               <div className="flex flex-wrap items-center gap-6 text-white/90">
@@ -406,22 +401,21 @@ function handleAnimationComplete(): void {
             <article className="lg:col-span-4">
               <div className="bg-white rounded-2xl shadow-lg p-8 md:p-16">
                 {/* Tags */}
-           {post.tags && post.tags.length > 0 && (
-  <div dir="rtl" className="flex flex-wrap gap-3 mb-8 font-arabic text-right">
-    <Tag className="w-4 h-4 text-purple-600 mt-1" />
-    {post.tags.map((tag, index) => (
-      <BlurText
-        key={tag}
-        text={tag}
-        delay={index * 150} // لتأخير التاغات بشكل متدرج
-        animateBy="words"    // مهم: لا تستخدم "chars" مع العربية
-        direction="top"
-        className="bg-purple-100 text-purple-700 px-3 py-1 rounded-lg text-sm"
-      />
-    ))}
-  </div>
-)}
-
+                {post.tags && post.tags.length > 0 && (
+                  <div dir="rtl" className="flex flex-wrap gap-3 multitudinouse mb-8 font-arabic text-right">
+                    <Tag className="w-4 h-4 text-purple-600 mt-1" />
+                    {post.tags.map((tag, index) => (
+                      <BlurText
+                        key={tag}
+                        text={tag}
+                        delay={index * 150}
+                        animateBy="words"
+                        direction="top"
+                        className="bg-purple-100 text-purple-700 px-3 py-1 rounded-lg text-sm"
+                      />
+                    ))}
+                  </div>
+                )}
 
                 {/* Content */}
                 <div className="prose prose-lg max-w-none">{renderContent(post.content || [])}</div>
@@ -429,56 +423,71 @@ function handleAnimationComplete(): void {
                 {/* Social Actions */}
                 <div className="flex items-center justify-between pt-8 mt-8 border-t border-gray-200">
                   <div className="flex items-center gap-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setIsLiked(!isLiked)
-                        setLikesCount((prev) => (isLiked ? prev - 1 : prev + 1))
-                      }}
-                      className={`${isLiked ? "bg-red-50 border-red-200 text-red-600" : "border-gray-200"}`}
-                    >
-                      <Heart className={`w-4 h-4 ml-2 ${isLiked ? "fill-current" : ""}`} />
-                      إعجاب {likesCount > 0 && `(${likesCount})`}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsBookmarked(!isBookmarked)}
-                      className={`${isBookmarked ? "bg-blue-50 border-blue-200 text-blue-600" : "border-gray-200"}`}
-                    >
-                      <Bookmark className={`w-4 h-4 ml-2 ${isBookmarked ? "fill-current" : ""}`} />
-                      حفظ
-                    </Button>
+                    <motion.div variants={buttonVariants} initial="hidden" animate="visible">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setIsLiked(!isLiked)
+                          setLikesCount((prev) => (isLiked ? prev - 1 : prev + 1))
+                        }}
+                        className={`${isLiked ? "bg-red-50 border-red-200 text-red-600" : "border-gray-200"}`}
+                      >
+                        <Heart className={`w-4 h-4 ml-2 ${isLiked ? "fill-current" : ""}`} />
+                        إعجاب {likesCount > 0 && `(${likesCount})`}
+                      </Button>
+                    </motion.div>
+                    <motion.div variants={buttonVariants} initial="hidden" animate="visible">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsBookmarked(!isBookmarked)}
+                        className={`${isBookmarked ? "bg-blue-50 border-blue-200 text-blue-600" : "border-gray-200"}`}
+                      >
+                        <Bookmark className={`w-4 h-4 ml-2 ${isBookmarked ? "fill-current" : ""}`} />
+                        حفظ
+                      </Button>
+                    </motion.div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <motion.div
+                    className="flex items-center gap-2"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, ease: "easeOut", delay: 0.6 }}
+                  >
                     <span className="text-sm text-gray-500 ml-3">مشاركة:</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={shareOnFacebook}
-                      className="border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent"
-                    >
-                      <Facebook className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={shareOnTwitter}
-                      className="border-sky-200 text-sky-600 hover:bg-sky-50 bg-transparent"
-                    >
-                      <Twitter className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={shareOnWhatsApp}
-                      className="border-green-200 text-green-600 hover:bg-green-50 bg-transparent"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                    </Button>
-                  </div>
+                    <motion.div variants={buttonVariants} initial="hidden" animate="visible">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={shareOnFacebook}
+                        className="border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent"
+                      >
+                        <Facebook className="w-4 h-4" />
+                      </Button>
+                    </motion.div>
+                    <motion.div variants={buttonVariants} initial="hidden" animate="visible">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={shareOnTwitter}
+                        className="border-sky-200 text-sky-600 hover:bg-sky-50 bg-transparent"
+                      >
+                        <Twitter className="w-4 h-4" />
+                      </Button>
+                    </motion.div>
+                    <motion.div variants={buttonVariants} initial="hidden" animate="visible">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={shareOnWhatsApp}
+                        className="border-green-200 text-green-600 hover:bg-green-50 bg-transparent"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </Button>
+                    </motion.div>
+                  </motion.div>
                 </div>
               </div>
             </article>
@@ -505,30 +514,36 @@ function handleAnimationComplete(): void {
                       مشاركة سريعة
                     </h3>
                     <div className="space-y-3">
-                      <Button
-                        onClick={shareOnFacebook}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                        size="sm"
-                      >
-                        <Facebook className="w-4 h-4 ml-2" />
-                        فيسبوك
-                      </Button>
-                      <Button
-                        onClick={shareOnTwitter}
-                        className="w-full bg-sky-500 hover:bg-sky-600 text-white"
-                        size="sm"
-                      >
-                        <Twitter className="w-4 h-4 ml-2" />
-                        تويتر
-                      </Button>
-                      <Button
-                        onClick={shareOnWhatsApp}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white"
-                        size="sm"
-                      >
-                        <MessageCircle className="w-4 h-4 ml-2" />
-                        واتساب
-                      </Button>
+                      <motion.div variants={buttonVariants} initial="hidden" animate="visible">
+                        <Button
+                          onClick={shareOnFacebook}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                          size="sm"
+                        >
+                          <Facebook className="w-4 h-4 ml-2" />
+                          فيسبوك
+                        </Button>
+                      </motion.div>
+                      <motion.div variants={buttonVariants} initial="hidden" animate="visible">
+                        <Button
+                          onClick={shareOnTwitter}
+                          className="w-full bg-sky-500 hover:bg-sky-600 text-white"
+                          size="sm"
+                        >
+                          <Twitter className="w-4 h-4 ml-2" />
+                          تويتر
+                        </Button>
+                      </motion.div>
+                      <motion.div variants={buttonVariants} initial="hidden" animate="visible">
+                        <Button
+                          onClick={shareOnWhatsApp}
+                          className="w-full bg-green-600 hover:bg-green-700 text-white"
+                          size="sm"
+                        >
+                          <MessageCircle className="w-4 h-4 ml-2" />
+                          واتساب
+                        </Button>
+                      </motion.div>
                     </div>
                   </CardContent>
                 </Card>

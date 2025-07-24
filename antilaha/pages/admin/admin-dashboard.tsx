@@ -25,7 +25,7 @@ import { PostsSection } from "./sections/posts-section"
 import { DashboardSection } from "./sections/dashboard-section"
 import { SettingsSection } from "./sections/settings-section"
 import { PostsManagementSection } from "./sections/posts-management-section"
-
+import {AdminAdvertisements} from "./sections/admin-advertisements"
 const menuItems = [
   {
     id: "dashboard",
@@ -50,6 +50,12 @@ const menuItems = [
     title: "كتابة مقال جديد",
     icon: Plus,
     component: PostsSection,
+  },
+   {
+    id: "AdminAdvertisements",
+    title: "  الاعلانات",
+    icon: Plus,
+    component: AdminAdvertisements,
   },
   {
     id: "settings",

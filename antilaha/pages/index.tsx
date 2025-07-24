@@ -4,7 +4,8 @@ import { CategoriesShowcase } from "@/components/categories-showcase"
 import { HeroSection } from "@/components/hero-section"
 import Navbar from "@/components/Navigations/main-nav"
 
-
+import {Addvi} from "@/components/addvi"
+import { Footer } from "@/components/Navigations/footer"
 export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
@@ -12,7 +13,9 @@ export default function Home() {
   
     
     <HeroSection/>
+    <Addvi/>
     <CategoriesShowcase/>
+    <Footer/>
     </div>
   )
 }

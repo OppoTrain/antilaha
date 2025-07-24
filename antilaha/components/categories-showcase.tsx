@@ -9,7 +9,6 @@ import { db } from "@/lib/firebase"
 import { Calendar, User, Loader2, Eye, Clock, Plus } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { useRouter } from "next/router"
 
 interface Post {
   id: string
@@ -78,7 +77,6 @@ export function CategoriesShowcase() {
   const [isLoading, setIsLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState<{ [key: string]: boolean }>({})
   const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
 
   useEffect(() => {
     fetchCategoriesWithPosts()
